@@ -1,0 +1,80 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int bruteForceCount = 0;
+int branchAndBoundCount = 0;
+
+// Функция для поиска максимального квадрата нулей стратегией "в лоб"
+int findMaxSquareBruteForce(const vector<vector<int>>& mat) {
+    int M = mat.size();
+    int N = mat[0].size();
+    int maxSize = 0;
+
+    for (int i = 0; i < M; ++i) {
+        for (int j = 0; j < N; ++j) {
+            for (int size = 1; size <= min(M - i, N - j); ++size) {
+                bool allZeros = true;
+                for (int k = i; k < i + size; ++k) {
+                    for (int l = j; l < j + size; ++l) {
+                        bruteForceCount++;
+                        if (mat[k][l] != 0) {
+                            allZeros = false;
+                            break;
+                        }
+                    }
+                    if (!allZeros) break;
+                }
+                if (allZeros) {
+                    maxSize = max(maxSize, size);
+                }
+            }
+        }
+    }
+    return maxSize;
+}
+
+// Функция для поиска максимального квадрата нулей методом ветвей и границ
+int findMaxSquareBranchAndBound(const vector<vector<int>>& mat) {
+    int M = mat.size();
+    int N = mat[0].size();
+    vector<vector<int>> dp(M, vector<int>(N, 0));
+    int maxSize = 0;
+
+    for (int i = 0; i < M; ++i) {
+        for (int j = 0; j < N; ++j) {
+            if (i == 0 || j == 0) {
+                dp[i][j] = mat[i][j] == 0 ? 1 : 0;
+            }
+            else if (mat[i][j] == 0) {
+                dp[i][j] = min({ dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1] }) + 1;
+            }
+            maxSize = max(maxSize, dp[i][j]);
+            branchAndBoundCount++;
+        }
+    }
+    return maxSize;
+}
+
+int main() {
+    vector<vector<int>> mat = {
+        {0, 1, 1, 0, 1},
+        {1, 0, 0, 1, 0},
+        {0, 0, 0, 0, 0},
+        {1, 0, 0, 0, 0},
+        {1, 0, 0, 0, 0},
+        {1, 1, 1, 1, 0}
+    };
+
+    int maxSizeBruteForce = findMaxSquareBruteForce(mat);
+    cout << "Brute force method: Size of the largest square of 0s = " << maxSizeBruteForce;
+    cout << ", Number of iterations = " << bruteForceCount << endl;
+
+    int maxSizeBranchAndBound = findMaxSquareBranchAndBound(mat);
+    cout << "Branch and bound method: Size of the largest square of 0s = " << maxSizeBranchAndBound;
+    cout << ", Number of iterations = " << branchAndBoundCount << endl;
+
+    return 0;
+}
